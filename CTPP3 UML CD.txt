@@ -1,0 +1,157 @@
+@startuml
+
+title CTPP - Class Diagram
+
+package Engine {
+    circle CoreMinimal
+    class AActor
+    class APawn
+    class UCameraComponent
+    circle FloatingPawnMovement
+    circle DrawDebugHelpers
+}
+
+package ProceduralMeshComponent {
+    class UProceduralMeshComponent
+}
+
+class AMeshWork {
+    - UProceduralMeshComponent* _thisMesh;
+    # virtual void BeginPlay() override;
+    # virtual void PostActorCreated() override;
+    # virtual void PostLoad() override;
+    # int32 TriIndexCounter;
+    + AMeshWork();
+    + virtual void Tick(float DeltaTime) override;
+    + void DevelopmentalDriver();
+    + int32 GenerateTri(const TArray<FVector>& vertices,int32 triIndex = 0,bool invertedUV = false);
+    + int32 GenerateQuad(const TArray<FVector>& vertices,int32 triIndex0);
+    + int32 GenerateCube(const TArray<FVector>& vertices,int32 triIndex0);
+}
+note right of AMeshWork::_thisMesh
+    UPROPERTY(VisibleAnywhere)
+end note
+AMeshWork .up.> CoreMinimal
+AMeshWork -up-|> AActor
+AMeshWork::_thisMesh -up-> UProceduralMeshComponent
+
+class ATable {
+    - float _tableHeight;
+    - float _tableThickness;
+    - float _edgeFrontLength;
+    - float _edgeFlankLength;
+    - FVector _centerPosition;
+    - TArray<FVector> _corners;
+    - TArray<AChair*> _chairList;
+    - int32 _generateTable(int32 triIndex0);
+    - void _generateFurniture();
+    - void _updateNeighbour(FVector& selfPosition,const FVector& oldNeighbour,const FVector& newNeighbour);
+    - float _area(const FVector2D& point1,const FVector2D& point2,const FVector2D& point3);
+    - float _area();
+    + ATable();
+    + void GenerateFurniture(const TArray<FVector>& corners,const float& tableHeight,const float& tableThickness);
+    + void GenerateFurniture(const FVector2D& position,const float& halfSize,const float& tableHeight,const float& tableThickness,TArray<FVector2D>& resultantCorners);
+    + void GenerateFurniture(const FVector& position,const float& halfSize,const float& tableHeight,const float& tableThickness,TArray<FVector2D>& resultantCorners);
+    + void AlterFurniture(const int8& cornerIndex,const FVector2D& cornerPosition2D,TArray<FVector2D>& corners);
+    + bool PointInside(const FVector2D& point);
+    + void RemoveChairs();
+}
+ATable .up.> CoreMinimal
+ATable -up-|> AMeshWork
+ATable::_chairList "1" --o "0..n" AChair
+
+class AChair {
+    + int32 GenerateChair(const FVector& position,float chairSize,const float& chairHeight = 50,const float& chairThickness = 2,int32 triIndex0 = 0);
+}
+AChair .up.> CoreMinimal
+AChair -up-|> AMeshWork
+
+entity FFurniture {
+    ATable* Pointer;
+    TArray<FVector2D> Corners;
+}
+FFurniture::Pointer "1" --o "1" ATable
+
+enum EActionState {
+    NONE
+    CREATE
+    ALTER
+}
+
+class APlayWork {
+    - APlayerController* _playerController;
+    - APawn* _playerPawn;
+    - TArray<FFurniture> _furnitures;
+    - EActionState _actionState;
+    - FFurniture* _alterationFurniture;
+    - int8 _alterationCornerIndex;
+    - FVector _worldMouseLocation;
+    - FVector _worldMouseDirection;
+    - FVector _myLocation;
+    - FVector _mySolution;
+    - FRotator _inputRotation;
+    - float _inputTurn;
+    - float _inputPitch;
+    - float _maxRotationRate;
+    - float _rotationSpeed;
+    - float _rotationDeceleration;
+    - FVector _inputTranslation;
+    - float _maxTranslationRate;
+    - float _translationDeceleration;
+    - void _bindToInput();
+    - void _setPlayerController();
+    - void _centerFurniture();
+    - void _locomotion(float);
+    - void _screenPrint();
+    # virtual void BeginPlay() override;
+    # void _action_MouseClick_Pressed();
+    # void _action_MouseClick_Released();
+    # void _action_Delete();
+    # void _axis_MouseMove(float);
+    # void _axis_Turn(float);
+    # void _axis_Pitch(float);
+    # void _axis_Horizontal(float);
+    # void _axis_Vertical(float);
+    # void _axis_Straight(float);
+    + APlayWork();
+    + virtual void Tick(float DeltaTime) override;
+    + float TableHeight = 70;
+    + float TableSize = 120;
+    + float TableThickness = 5;
+    + float FloorHeight = 5;
+    + float TranslationSpeed = 200;
+    + UStaticMeshComponent* WorkerMeshComponent;
+    + UCameraComponent* Camera;
+    + FVector2D LineFloorIntersection(const FVector& point1,const FVector& point2,const float& floorHeight);
+}
+note right of APlayWork::TableHeight
+    UPROPERTY(EditAnywhere)
+end note
+note right of APlayWork::TableSize
+    UPROPERTY(EditAnywhere)
+end note
+note right of APlayWork::TableThickness
+    UPROPERTY(EditAnywhere)
+end note
+note right of APlayWork::FloorHeight
+    UPROPERTY(EditAnywhere)
+end note
+note right of APlayWork::TranslationSpeed
+    UPROPERTY(EditAnywhere)
+end note
+note right of APlayWork::UStaticMeshComponent
+    UPROPERTY(EditAnywhere)
+end note
+note right of APlayWork::Camera
+    UPROPERTY(EditAnywhere)
+end note
+APlayWork .up.> CoreMinimal
+APlayWork -up-|> APawn
+APlayWork::Camera "1" -up-* "1" UCameraComponent
+APlayWork -up-> FloatingPawnMovement
+APlayWork -up-> DrawDebugHelpers
+APlayWork::_furnitures "1" --o "0..n" FFurniture
+APlayWork::_actionState "1" --* "1" EActionState
+APlayWork::_alterationFurniture "1" --* "n" FFurniture
+
+@enduml
