@@ -24,7 +24,7 @@ int32 ATable::_generateTable(int32 triIndex0) {
 		FVector(_corners[2].X+_tableThickness*2,_corners[2].Y+_tableThickness*2,_tableHeight-_tableThickness),
 		FVector(_corners[3].X+_tableThickness*2,_corners[3].Y-_tableThickness*2,_tableHeight-_tableThickness),
 	};
-	int32 TriIndex = triIndex0 = GenerateCube(Vertices,triIndex0);
+	int32 TriIndex = triIndex0 = generateCube(Vertices,triIndex0);
 	for(int8 i = 0;i<4;++i) {
 		if(TriIndex) {
 			Vertices = {
@@ -37,7 +37,7 @@ int32 ATable::_generateTable(int32 triIndex0) {
 				FVector(_corners[i].X+_tableThickness,_corners[i].Y+_tableThickness,0),
 				FVector(_corners[i].X+_tableThickness,_corners[i].Y-_tableThickness,0),
 			};
-			TriIndex = GenerateCube(Vertices,TriIndex+12);
+			TriIndex = generateCube(Vertices,TriIndex+12);
 		}
 	}
 
@@ -56,7 +56,7 @@ void ATable::_generateFurniture() {
 	_edgeFlankLength = FVector::Dist(_corners[1],_corners[2]);
 	_centerPosition = (_corners[0]+_corners[1]+_corners[2]+_corners[3])/4;
 
-	RemoveChairs();
+	removeChairs();
 	int32 _triIndex0 = _generateTable(1);
 
 	int32 ChairSize		{48};
@@ -77,10 +77,10 @@ void ATable::_generateFurniture() {
 	EdgePosition = -_edgeFlankLength/2.f+CenterDistance/2.f;
 	for(int32 i{0};i<EdgeCount;++i) {
 		AChair* ChairLeft = GetWorld()->SpawnActor<AChair>({_centerPosition.X+EdgePosition,_centerPosition.Y-EdgeDistance-ChairSize,0},{0,90,0},SpawnInfo_Chair);
-		ChairLeft->GenerateChair(FVector(0),ChairSize,ChairHeight);
+		ChairLeft->generateChair(FVector(0),ChairSize,ChairHeight);
 		_chairList.Add(ChairLeft);
 		AChair* ChairRight = GetWorld()->SpawnActor<AChair>({_centerPosition.X+EdgePosition,_centerPosition.Y+EdgeDistance+ChairSize,0},{0,-90,0},SpawnInfo_Chair);
-		ChairRight->GenerateChair(FVector(0),ChairSize,ChairHeight);
+		ChairRight->generateChair(FVector(0),ChairSize,ChairHeight);
 		_chairList.Add(ChairRight);
 		EdgePosition += CenterDistance;
 	}
@@ -91,10 +91,10 @@ void ATable::_generateFurniture() {
 	EdgePosition = -_edgeFrontLength/2.f+CenterDistance/2.f;
 	for(int32 i{0};i<EdgeCount;++i) {
 		AChair* ChairBack = GetWorld()->SpawnActor<AChair>({_centerPosition.X-EdgeDistance-ChairSize,_centerPosition.Y+EdgePosition,0},{0,0,0},SpawnInfo_Chair);
-		ChairBack->GenerateChair(FVector(0),ChairSize,ChairHeight);
+		ChairBack->generateChair(FVector(0),ChairSize,ChairHeight);
 		_chairList.Add(ChairBack);
 		AChair* ChairFace = GetWorld()->SpawnActor<AChair>({_centerPosition.X+EdgeDistance+ChairSize,_centerPosition.Y+EdgePosition,0},{0,180,0},SpawnInfo_Chair);
-		ChairFace->GenerateChair(FVector(0),ChairSize,ChairHeight);
+		ChairFace->generateChair(FVector(0),ChairSize,ChairHeight);
 		_chairList.Add(ChairFace);
 		EdgePosition += CenterDistance;
 	}
@@ -121,7 +121,7 @@ float ATable::_area() {
 		+ _area(FVector2D(_corners[0]),FVector2D(_corners[3]),FVector2D(_corners[2]));
 }
 
-void ATable::GenerateFurniture(const TArray<FVector>& corners,const float& tableHeight,const float& tableThickness) {
+void ATable::generateFurniture(const TArray<FVector>& corners,const float& tableHeight,const float& tableThickness) {
 	UE_LOG(LogTemp,Display,TEXT("\tGenerateFurniture-1\t"));
 
 	_corners = corners;
@@ -131,7 +131,7 @@ void ATable::GenerateFurniture(const TArray<FVector>& corners,const float& table
 	_generateFurniture();
 }
 
-void ATable::GenerateFurniture(const FVector2D& position,const float& halfSize,const float& tableHeight,const float& tableThickness,TArray<FVector2D>& resultantCorners) {
+void ATable::generateFurniture(const FVector2D& position,const float& halfSize,const float& tableHeight,const float& tableThickness,TArray<FVector2D>& resultantCorners) {
 	UE_LOG(LogTemp,Display,TEXT("\tGenerateFurniture-2\t"));
 
 	_corners = {
@@ -152,7 +152,7 @@ void ATable::GenerateFurniture(const FVector2D& position,const float& halfSize,c
 	_generateFurniture();
 }
 
-void ATable::GenerateFurniture(const FVector& position,const float& halfSize,const float& tableHeight,const float& tableThickness,TArray<FVector2D>& resultantCorners) {
+void ATable::generateFurniture(const FVector& position,const float& halfSize,const float& tableHeight,const float& tableThickness,TArray<FVector2D>& resultantCorners) {
 	UE_LOG(LogTemp,Display,TEXT("\tGenerateFurniture-3\t"));
 
 	_corners = {
@@ -173,7 +173,7 @@ void ATable::GenerateFurniture(const FVector& position,const float& halfSize,con
 	_generateFurniture();
 }
 
-void ATable::AlterFurniture(const int8& cornerIndex,const FVector2D& cornerPosition2D,TArray<FVector2D>& corners) {
+void ATable::alterFurniture(const int8& cornerIndex,const FVector2D& cornerPosition2D,TArray<FVector2D>& corners) {
 	UE_LOG(LogTemp,Display,TEXT("\tAlterFurniture\t"));
 
 	FVector NewPosition = FVector(cornerPosition2D,_tableHeight);
@@ -190,7 +190,7 @@ void ATable::AlterFurniture(const int8& cornerIndex,const FVector2D& cornerPosit
 	}
 }
 
-bool ATable::PointInside(const FVector2D& point) {
+bool ATable::isPointInside(const FVector2D& point) {
 	UE_LOG(LogTemp,Display,TEXT("\tPointInside\t"));
 
 	float PointArea {
@@ -202,7 +202,7 @@ bool ATable::PointInside(const FVector2D& point) {
 	return PointArea<=_area();
 }
 
-void ATable::RemoveChairs() {
+void ATable::removeChairs() {
 	UE_LOG(LogTemp,Display,TEXT("\tRemoveChairs\t"));
 
 	for(auto Chair:_chairList) {

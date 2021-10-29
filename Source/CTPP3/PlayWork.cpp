@@ -16,12 +16,13 @@ APlayWork::APlayWork()
 	_worldMouseLocation = FVector(0);
 	_worldMouseDirection = FVector(0);
 	_myLocation = FVector(0);
-	_mySolution = FVector(0);
+	_myIntersection = FVector(0);
 
-	CreateDefaultSubobject<UFloatingPawnMovement>("PawnMovement");
+	CreateDefaultSubobject<UFloatingPawnMovement>(TEXT("PawnMovement"));
 	WorkerMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("RootComponent"));
 	RootComponent = WorkerMeshComponent;
-	Camera = CreateDefaultSubobject<UCameraComponent>("Camera");
+	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
+	//RootComponent = Camera;
 
 	_worldMouseLocation = FVector(0);
 	_worldMouseDirection = FVector(0);
@@ -43,7 +44,9 @@ void APlayWork::BeginPlay()
 
 	_bindToInput();
 	_setPlayerController();
-	_centerFurniture();
+	if(bCenterFurniture) {
+		_centerFurniture();
+	}
 }
 
 // Called every frame
@@ -63,6 +66,8 @@ void APlayWork::_bindToInput() {
 	if(InputComponent) {
 		InputComponent->BindAction("MouseClick",IE_Pressed,this,&APlayWork::_action_MouseClick_Pressed);
 		InputComponent->BindAction("MouseClick",IE_Released,this,&APlayWork::_action_MouseClick_Released);
+		InputComponent->BindAction("Insert",IE_Pressed,this,&APlayWork::_action_MouseClick_Pressed);
+		InputComponent->BindAction("Insert",IE_Released,this,&APlayWork::_action_Insert);
 		InputComponent->BindAction("Delete",IE_Pressed,this,&APlayWork::_action_Delete);
 		InputComponent->BindAxis("MouseMove",this,&APlayWork::_axis_MouseMove);
 		InputComponent->BindAxis("Turn",this,&APlayWork::_axis_Turn);
@@ -78,7 +83,7 @@ void APlayWork::_bindToInput() {
 void APlayWork::_action_MouseClick_Pressed() {
 	UE_LOG(LogTemp,Display,TEXT("\t_action_MouseClick_Pressed\t"));
 
-	_actionState = EActionState::CREATE;
+	//_actionState = EActionState::CREATE;
 	_furnitures.Reserve(_furnitures.Num());
 	for(int32 i = _furnitures.Num()-1;0<=i;--i) {
 		FFurniture& Furniture = _furnitures[i];
@@ -96,16 +101,27 @@ void APlayWork::_action_MouseClick_Pressed() {
 void APlayWork::_action_MouseClick_Released() {
 	UE_LOG(LogTemp,Display,TEXT("\t_action_MouseClick_Released\t"));
 
-	switch(_actionState) {
-		case EActionState::CREATE:
-			FFurniture Resultant;
-			Resultant.Pointer = GetWorld()->SpawnActor<ATable>(FVector(0),FRotator(0),FActorSpawnParameters());
-			Resultant.Pointer->GenerateFurniture(_mySolution,TableSize/2,TableHeight,TableThickness,Resultant.Corners);
-			_furnitures.Add(Resultant);
+	/*switch(_actionState) {
+	case EActionState::CREATE:
+		FFurniture Resultant;
+		Resultant.Pointer = GetWorld()->SpawnActor<ATable>(FVector(0),FRotator(0),FActorSpawnParameters());
+		Resultant.Pointer->generateFurniture(_myIntersection,TableSize/2,TableHeight,TableThickness,Resultant.Corners);
+		_furnitures.Add(Resultant);
 		break;
-	}
+	}*/
 	_actionState = EActionState::NONE;
 
+	UE_LOG(LogTemp,Display,TEXT("\tFurniture count:\t%d"),_furnitures.Num());
+}
+
+void APlayWork::_action_Insert() {
+	UE_LOG(LogTemp,Display,TEXT("\t_action_Insert_Released\t"));
+
+	FFurniture Resultant;
+	Resultant.Pointer = GetWorld()->SpawnActor<ATable>(FVector(0),FRotator(0),FActorSpawnParameters());
+	Resultant.Pointer->generateFurniture(_myIntersection,TableSize/2,TableHeight,TableThickness,Resultant.Corners);
+	_furnitures.Add(Resultant);
+	
 	UE_LOG(LogTemp,Display,TEXT("\tFurniture count:\t%d"),_furnitures.Num());
 }
 
@@ -117,8 +133,8 @@ void APlayWork::_action_Delete() {
 			_furnitures.Reserve(_furnitures.Num());
 			for(int32 i = _furnitures.Num()-1;0<=i;--i) {
 				FFurniture& Furniture = _furnitures[i];
-				if(Furniture.Pointer->PointInside(LineFloorIntersection(_myLocation,_worldMouseLocation,TableHeight))) {
-					Furniture.Pointer->RemoveChairs();
+				if(Furniture.Pointer->isPointInside(LineFloorIntersection(_myLocation,_worldMouseLocation,TableHeight))) {
+					Furniture.Pointer->removeChairs();
 					Furniture.Pointer->Destroy();
 					_furnitures.RemoveAt(i);
 				}
@@ -131,7 +147,7 @@ void APlayWork::_axis_MouseMove(float inputAxis) {
 	//GEngine->AddOnScreenDebugMessage(10,10,FColor::Red,FString::Printf(TEXT("_axis_MouseMove:\n%f"),inputAxis));
 	switch(_actionState) {
 		case EActionState::ALTER:
-			_alterationFurniture->Pointer->AlterFurniture(_alterationCornerIndex,LineFloorIntersection(_myLocation,_worldMouseLocation,TableHeight),_alterationFurniture->Corners);
+			_alterationFurniture->Pointer->alterFurniture(_alterationCornerIndex,LineFloorIntersection(_myLocation,_worldMouseLocation,TableHeight),_alterationFurniture->Corners);
 		break;
 	}
 }
@@ -189,7 +205,7 @@ void APlayWork::_centerFurniture() {
 		FVector(+100,+70,{}),
 		FVector(+100,-70,{}),
 	};
-	CenterSet.Pointer->GenerateFurniture(Location,TableHeight,TableThickness);
+	CenterSet.Pointer->generateFurniture(Location,TableHeight,TableThickness);
 	CenterSet.Corners = {
 		FVector2D(-100,-70),
 		FVector2D(-100,+70),
@@ -208,7 +224,7 @@ void APlayWork::_locomotion(float deltaTime) {
 	_playerController->DeprojectMousePositionToWorld(_worldMouseLocation,_worldMouseDirection);
 	if(_playerPawn)
 		_myLocation = _playerPawn->GetActorLocation();
-	_mySolution = FVector(LineFloorIntersection(_myLocation,_worldMouseLocation,FloorHeight),FloorHeight);
+	_myIntersection = FVector(LineFloorIntersection(_myLocation,_worldMouseLocation,FloorHeight),FloorHeight);
 
 	AddActorWorldRotation(FQuat(FRotator(0,_inputTurn,0)),true);
 	AddActorLocalRotation(FQuat(FRotator(_inputPitch,0,0)),true);
@@ -228,7 +244,7 @@ void APlayWork::_screenPrint() {
 		GEngine->AddOnScreenDebugMessage(2,10,FColor::Magenta,FString::Printf(TEXT("_worldMouseDirection\nX: %f\nY: %f\nZ: %f"),_worldMouseDirection.X,_worldMouseDirection.Y,_worldMouseDirection.Z));
 		GEngine->AddOnScreenDebugMessage(3,10,FColor::Purple,FString::Printf(TEXT("_myLocation\nX: %f\nY: %f\nZ: %f"),_myLocation.X,_myLocation.Y,_myLocation.Z));
 		GEngine->AddOnScreenDebugMessage(4,10,FColor::Purple,FString::Printf(TEXT("Distance:\n%f"),FVector::Dist(_myLocation,_worldMouseLocation)));
-		GEngine->AddOnScreenDebugMessage(5,10,FColor::Green,FString::Printf(TEXT("_mySolution\nX: %f\nY: %f\nZ: %f"),_mySolution.X,_mySolution.Y,_mySolution.Z));
+		GEngine->AddOnScreenDebugMessage(5,10,FColor::Green,FString::Printf(TEXT("_myIntersection\nX: %f\nY: %f\nZ: %f"),_myIntersection.X,_myIntersection.Y,_myIntersection.Z));
 	}
 }
 

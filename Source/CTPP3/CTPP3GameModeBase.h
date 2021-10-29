@@ -14,4 +14,6 @@ class CTPP3_API ACTPP3GameModeBase : public AGameModeBase
 {
 	GENERATED_BODY()
 	
+		ACTPP3GameModeBase();
+
 };

@@ -23,12 +23,12 @@ void AMeshWork::BeginPlay()
 
 void AMeshWork::PostActorCreated() {
 	Super::PostActorCreated();
-	// DevelopmentalDriver();
+	// developmentalDriver();
 }
 
 void AMeshWork::PostLoad() {
 	Super::PostLoad();
-	// DevelopmentalDriver();
+	// developmentalDriver();
 }
 
 // Called every frame
@@ -38,7 +38,7 @@ void AMeshWork::Tick(float DeltaTime)
 
 }
 
-int32 AMeshWork::GenerateTri(const TArray<FVector>& vertices,int32 triIndex,bool invertedUV) {
+int32 AMeshWork::generateTri(const TArray<FVector>& vertices,int32 triIndex,bool invertedUV) {
 	UE_LOG(LogTemp,Display,TEXT("\tGenerateTri\t"));
 	UE_LOG(LogTemp,Display,TEXT("\tCalled with triIndex:%d\t"),triIndex);
 	if(vertices.Num()<3) {
@@ -87,50 +87,50 @@ int32 AMeshWork::GenerateTri(const TArray<FVector>& vertices,int32 triIndex,bool
 	return triIndex;
 }
 
-int32 AMeshWork::GenerateQuad(const TArray<FVector>& vertices,int32 triIndex0) {
+int32 AMeshWork::generateQuad(const TArray<FVector>& vertices,int32 triIndex0) {
 	UE_LOG(LogTemp,Display,TEXT("\tGenerateQuad\t"));
 	if(vertices.Num()<4) {
 		return 0;
 	}
-	int32 TriIndex = triIndex0 = GenerateTri({vertices[0],vertices[1],vertices[3]},triIndex0);
+	int32 TriIndex = triIndex0 = generateTri({vertices[0],vertices[1],vertices[3]},triIndex0);
 	if(triIndex0) {
-		TriIndex = GenerateTri({vertices[2],vertices[3],vertices[1]},triIndex0+1,true);
+		TriIndex = generateTri({vertices[2],vertices[3],vertices[1]},triIndex0+1,true);
 	}
 	return TriIndex?triIndex0:0;
 }
 
-int32 AMeshWork::GenerateCube(const TArray<FVector>& vertices,int32 triIndex0) {
+int32 AMeshWork::generateCube(const TArray<FVector>& vertices,int32 triIndex0) {
 	UE_LOG(LogTemp,Display,TEXT("\tGenerateCube\t"));
 	if(vertices.Num()<8) {
 		return 0;
 	}
-	int32 TriIndex = triIndex0 = GenerateQuad({vertices[0],vertices[1],vertices[2],vertices[3]},triIndex0);
+	int32 TriIndex = triIndex0 = generateQuad({vertices[0],vertices[1],vertices[2],vertices[3]},triIndex0);
 	if(TriIndex) {
-		TriIndex = GenerateQuad({vertices[4],vertices[7],vertices[6],vertices[5]},TriIndex+2);
+		TriIndex = generateQuad({vertices[4],vertices[7],vertices[6],vertices[5]},TriIndex+2);
 	}
 	if(TriIndex) {
-		TriIndex = GenerateQuad({vertices[0],vertices[4],vertices[5],vertices[1]},TriIndex+2);
+		TriIndex = generateQuad({vertices[0],vertices[4],vertices[5],vertices[1]},TriIndex+2);
 	}
 	if(TriIndex) {
-		TriIndex = GenerateQuad({vertices[2],vertices[6],vertices[7],vertices[3]},TriIndex+2);
+		TriIndex = generateQuad({vertices[2],vertices[6],vertices[7],vertices[3]},TriIndex+2);
 	}
 	if(TriIndex) {
-		TriIndex = GenerateQuad({vertices[0],vertices[3],vertices[7],vertices[4]},TriIndex+2);
+		TriIndex = generateQuad({vertices[0],vertices[3],vertices[7],vertices[4]},TriIndex+2);
 	}
 	if(TriIndex) {
-		TriIndex = GenerateQuad({vertices[2],vertices[1],vertices[5],vertices[6]},TriIndex+2);
+		TriIndex = generateQuad({vertices[2],vertices[1],vertices[5],vertices[6]},TriIndex+2);
 	}
 	return TriIndex?triIndex0:0;
 }
 
-void AMeshWork::DevelopmentalDriver() {
+void AMeshWork::developmentalDriver() {
 
 	TArray<FVector> Vertices1{
 		FVector(0,0,0),
 		FVector(0,0,200),
 		FVector(0,200,0),
 	};
-	GenerateTri(Vertices1);
+	generateTri(Vertices1);
 
 	/*FVector SpawnLocation_CenterTable(0.f);
 	FRotator SpawnRotation_CenterTable(0.f);
@@ -142,5 +142,5 @@ void AMeshWork::DevelopmentalDriver() {
 			FVector(+100,+70,{}),
 			FVector(+100,-70,{}),
 	};
-	CenterTable->GenerateFurniture(Location_CenterTable);*/
+	CenterTable->generateFurniture(Location_CenterTable);*/
 }
